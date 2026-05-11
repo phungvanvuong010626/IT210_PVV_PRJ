@@ -94,7 +94,7 @@ public class AuthController {
 
             User savedUser = userService.register(user, phoneNumber);
             session.setAttribute("user", savedUser);
-            return "redirect:/user/home";
+            return "redirect:/login";
         } catch (Exception e) {
             model.addAttribute("err", "Ten dang nhap hoac email da ton tai, hoac loi he thong!");
             model.addAttribute("phoneNumber", phoneNumber);

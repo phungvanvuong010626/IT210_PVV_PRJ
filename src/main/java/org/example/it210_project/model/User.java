@@ -43,6 +43,7 @@ public class User {
     // --- CHỖ SỬA 2: THÊM QUAN HỆ 1-1 VỚI USER_PROFILE ---
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumn
+    @EqualsAndHashCode.Exclude
     private UserProfile userProfile;
 
     // QUAN HỆ: Một User có thể có nhiều vé (Phục vụ CORE-07 tra cứu lịch sử)

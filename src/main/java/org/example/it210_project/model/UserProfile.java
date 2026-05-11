@@ -18,6 +18,7 @@ public class UserProfile {
     @OneToOne
     @MapsId
     @JoinColumn(name = "user_id")
+    @EqualsAndHashCode.Exclude
     private User user;
 
     @Pattern(regexp = "\\d{10}", message = "Số điện thoại phải có đúng 10 chữ số")

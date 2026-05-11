@@ -102,16 +102,29 @@
                     </div>
                 </div>
 
-<!--                <div class="text-center mt-4">-->
-<!--                    <a href="/user/home" class="text-white-50 text-decoration-none small">-->
-<!--                        <i class="bi bi-house-door"></i> Quay lại trang chủ-->
-<!--                    </a>-->
-<!--                </div>-->
             </div>
         </div>
     </div>
 </div>
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${toastMsg}">Đăng ký thành công!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
 
+<script th:if="${showToast}">
+    document.addEventListener('DOMContentLoaded', function () {
+        var toastEl = document.getElementById('successToast');
+        var toast = new bootstrap.Toast(toastEl, { delay: 5000 }); // Hiện trong 5 giây
+        toast.show();
+    });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
