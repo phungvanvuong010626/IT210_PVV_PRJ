@@ -61,12 +61,22 @@
               </div>
 
               <div class="row mb-4">
+<!--                <div class="col-md-6">-->
+<!--                  <label class="form-label fw-bold">Thể loại</label>-->
+<!--                  <select th:field="*{genre.id}" class="form-select" required>-->
+<!--                    <option th:each="g : ${genres}" th:value="${g.id}" th:text="${g.name}"></option>-->
+<!--                  </select>-->
+<!--                  <div class="text-danger small mt-1" th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}"></div>-->
+<!--                </div>-->
                 <div class="col-md-6">
                   <label class="form-label fw-bold">Thể loại</label>
-                  <select th:field="*{genre.id}" class="form-select" required>
-                    <option th:each="g : ${genres}" th:value="${g.id}" th:text="${g.name}"></option>
+                  <select name="genre.id" class="form-select" required>
+                    <option th:each="g : ${genres}"
+                            th:value="${g.id}"
+                            th:text="${g.name}"
+                            th:selected="${movie.genre != null && g.id == movie.genre.id}">
+                    </option>
                   </select>
-                  <div class="text-danger small mt-1" th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}"></div>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold">Độ tuổi</label>
@@ -95,6 +105,8 @@
               <div class="row mb-4">
                 <div class="col-md-6">
                   <label class="form-label fw-bold">Ngay phat hanh</label>
+<!--                  <input type="date" th:field="*{releaseDate}" class="form-control"  required>-->
+<!--                  <div class="text-danger small mt-1" th:if="${#fields.hasErrors('releaseDate')}" th:errors="*{releaseDate}"></div>-->
                   <input type="date" th:field="*{releaseDate}" class="form-control" th:min="${today}" required>
                   <div class="text-danger small mt-1" th:if="${#fields.hasErrors('releaseDate')}" th:errors="*{releaseDate}"></div>
                 </div>

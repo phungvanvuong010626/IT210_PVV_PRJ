@@ -22,6 +22,9 @@ public class DataInitializer implements CommandLineRunner {
             genreRepository.save(new Genre(null, "Hành động", null));
             genreRepository.save(new Genre(null, "Kinh dị", null));
             genreRepository.save(new Genre(null, "Tình cảm", null));
+            genreRepository.save(new Genre(null, "Hài hước", null));
+            genreRepository.save(new Genre(null, "Khoa học Viễn Tưởng", null));
+            genreRepository.save(new Genre(null, "Thế giới mở", null));
         }
 
         // 2. Khởi tạo các tài khoản nhân viên và Admin (Phục vụ phân quyền)
@@ -51,6 +54,9 @@ public class DataInitializer implements CommandLineRunner {
         if (roomRepository.count() == 0) {
             createRoomWithSeats("Phòng 01");
             createRoomWithSeats("Phòng 02");
+            createRoomWithSeats("Phòng 03");
+            createRoomWithSeats("Phòng 04");
+            createRoomWithSeats("Phòng 05");
         }
     }
 
