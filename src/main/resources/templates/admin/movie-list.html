@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Quản lý hệ thống - Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .movie-thumb { width: 50px; height: 70px; object-fit: cover; border-radius: 6px; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .nav-link-custom.active { background-color: #0d6efd !important; color: white !important; }
+        .table thead { background-color: #f8f9fa; }
+        .status-badge { font-size: 0.75rem; padding: 5px 10px; border-radius: 20px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark shadow-sm mb-4 py-2">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-primary" href="/admin/dashboard">
+            <i class="bi bi-film me-2"></i> TP CINEMA ADMIN
+        </a>
+        <div class="d-flex align-items-center">
+            <div class="text-end me-3">
+                <div class="text-white fw-bold small" th:text="${session.user.fullName}">Admin</div>
+                <small class="text-primary" style="font-size: 11px;">Quản trị viên</small>
+            </div>
+            <a href="/profile">
+                <img th:src="'https://ui-avatars.com/api/?name=' + ${session.user.fullName} + '&background=0D6EFD&color=fff'"
+                     class="rounded-circle border border-2 border-primary" style="width: 40px; height: 40px;">
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4">
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4">
+        <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 col-lg-2 mb-4">
+            <div class="list-group card shadow-sm border-0">
+                <a href="/admin/dashboard" class="list-group-item list-group-item-action p-3 border-0">
+                    <i class="bi bi-speedometer2 me-2"></i> Tổng quan
+                </a>
+                <a href="/admin/movies" class="list-group-item list-group-item-action nav-link-custom active p-3 border-0">
+                    <i class="bi bi-film me-2"></i> Quản lý phim
+                </a>
+                <a href="/admin/movies/showtimes/add" class="list-group-item list-group-item-action p-3 border-0">
+                    <i class="bi bi-calendar-plus me-2"></i> Thiết lập suất chiếu
+                </a>
+                <a href="/logout" class="list-group-item list-group-item-action p-3 text-danger border-0">
+                    <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-9 col-lg-10">
+
+            <div class="card p-4 mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0">Kho Phim Hệ Thống</h4>
+                    <a href="/admin/movies/add" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm phim mới
+                    </a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                        <tr class="small text-muted">
+                            <th>PHIM</th>
+                            <th>THỂ LOẠI</th>
+                            <th>GIÁ VÉ</th>
+                            <th>THỜI LƯỢNG</th>
+                            <th>ĐỘ TUỔI</th>
+                            <th class="text-center">THAO TÁC</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="movie : ${movies}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img th:src="${movie.posterUrl}" class="movie-thumb me-3 shadow-sm" onerror="this.src='https://via.placeholder.com/50x70'">
+                                    <span class="fw-bold" th:text="${movie.title}"></span>
+                                </div>
+                            </td>
+                            <td th:text="${movie.genre != null ? movie.genre.name : 'N/A'}"></td>
+                            <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(movie.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                            <td th:text="${movie.duration} + ' phút'"></td>
+                            <td><span class="badge bg-secondary" th:text="${movie.ageRating}"></span></td>
+                            <td class="text-center">
+                                <div class="btn-group border rounded-3 overflow-hidden">
+                                    <a th:href="@{'/admin/movies/edit/' + ${movie.id}}" class="btn btn-sm btn-white text-warning py-2 px-3 border-end" title="Sửa">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <a th:href="@{'/admin/movies/delete/' + ${movie.id}}"
+                                       class="btn btn-sm btn-white text-danger py-2 px-3 js-delete-movie" data-bs-toggle="modal" data-bs-target="#deleteMovieModal">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table></div>                <nav th:if="${movieTotalPages > 1}" class="mt-3">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li th:class="${movieCurrentPage == 1} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/admin/movies(moviePage=${movieCurrentPage - 1}, showtimePage=${showtimeCurrentPage})}">Truoc</a></li>
+                        <li th:each="p : ${#numbers.sequence(1, movieTotalPages)}" th:class="${p == movieCurrentPage} ? 'page-item active' : 'page-item'"><a class="page-link" th:href="@{/admin/movies(moviePage=${p}, showtimePage=${showtimeCurrentPage})}" th:text="${p}"></a></li>
+                        <li th:class="${movieCurrentPage == movieTotalPages} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/admin/movies(moviePage=${movieCurrentPage + 1}, showtimePage=${showtimeCurrentPage})}">Sau</a></li>
+                    </ul>
+                </nav></div><div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0">Lịch Chiếu Chi Tiết</h4>
+                    <span class="badge bg-primary rounded-pill px-3 py-2" th:text="${showtimes != null ? showtimes.size() : 0} + ' suất chiếu'"></span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="small text-muted text-uppercase">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên Phim</th>
+                            <th>Phòng Chiếu</th>
+                            <th>Bắt Đầu</th>
+                            <th>Kết Thúc (+15p dọn)</th>
+                            <th>Trạng Thái</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="st : ${showtimes}">
+                            <td class="text-muted" th:text="${'#' + st.id}"></td>
+                            <td class="fw-bold text-primary" th:text="${st.movie.title}"></td>
+                            <td>
+                                <span class="badge bg-dark" th:text="${st.room.name}">Phòng 01</span>
+                            </td>
+                            <td>
+                                <div class="fw-bold" th:text="${#temporals.format(st.startTime, 'HH:mm')}">18:00</div>
+                                <small class="text-muted" th:text="${#temporals.format(st.startTime, 'dd/MM/yyyy')}"></small>
+                            </td>
+                            <td>
+                                <div th:text="${#temporals.format(st.endTime, 'HH:mm')}">20:00</div>
+                                <small class="text-success" th:text="'+15p dọn dẹp'"></small>
+                            </td>
+                            <td>
+                                    <span th:classappend="${st.status == 'ACTIVE' ? 'bg-success' : 'bg-secondary'}"
+                                          class="badge status-badge" th:text="${st.status}">ACTIVE</span>
+                            </td>
+                            <td class="text-center">
+                                <form th:action="@{'/admin/showtimes/delete/' + ${st.id}}" method="post" class="d-inline js-delete-showtime-form">
+<!--                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteShowtimeModal">-->
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-trigger-modal">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(showtimes)}">
+                            <td colspan="7" class="text-center py-4 text-muted small">Chưa có suất chiếu nào được thiết lập.</td>
+                        </tr>
+                        </tbody>
+                    </table></div>                <nav th:if="${showtimeTotalPages > 1}" class="mt-3">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li th:class="${showtimeCurrentPage == 1} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/admin/movies(moviePage=${movieCurrentPage}, showtimePage=${showtimeCurrentPage - 1})}">Truoc</a></li>
+                        <li th:each="p : ${#numbers.sequence(1, showtimeTotalPages)}" th:class="${p == showtimeCurrentPage} ? 'page-item active' : 'page-item'"><a class="page-link" th:href="@{/admin/movies(moviePage=${movieCurrentPage}, showtimePage=${p})}" th:text="${p}"></a></li>
+                        <li th:class="${showtimeCurrentPage == showtimeTotalPages} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/admin/movies(moviePage=${movieCurrentPage}, showtimePage=${showtimeCurrentPage + 1})}">Sau</a></li>
+                    </ul>
+                </nav></div></div></div></div>
+<div class="modal fade" id="deleteMovieModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Xac nhan xoa phim</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">Xoa phim se xoa toan bo lich chieu lien quan. Ban muon tiep tuc?</div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huy</button><a id="confirmDeleteMovie" href="#" class="btn btn-danger">Xoa</a></div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="deleteShowtimeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Xac nhan xoa suat chieu</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">Chi nen xoa suat chieu khi chua co ve. Ban chac chan muon xoa?</div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huy</button><button id="confirmDeleteShowtime" type="button" class="btn btn-danger">Xoa</button></div>
+        </div>
+    </div>
+</div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // let pendingShowtimeForm = null;
+    // document.querySelectorAll('.js-delete-movie').forEach(function (btn) {
+    //     btn.addEventListener('click', function (event) {
+    //         event.preventDefault();
+    //         document.getElementById('confirmDeleteMovie').setAttribute('href', btn.getAttribute('href'));
+    //     });
+    // });
+    // document.querySelectorAll('.js-delete-showtime-form').forEach(function (form) {
+    //     form.addEventListener('submit', function (event) {
+    //         event.preventDefault();
+    //         pendingShowtimeForm = form;
+    //         new bootstrap.Modal(document.getElementById('deleteShowtimeModal')).show();
+    //     });
+    // });
+    // document.getElementById('confirmDeleteShowtime')?.addEventListener('click', function () {
+    //     if (pendingShowtimeForm) pendingShowtimeForm.submit();
+    // });
+
+    let pendingShowtimeForm = null;
+
+    // Khởi tạo Modal của Bootstrap
+    const modalElement = document.getElementById('deleteShowtimeModal');
+    const bsModal = new bootstrap.Modal(modalElement);
+
+    // 1. Xử lý nút xóa trong bảng
+    document.querySelectorAll('.js-delete-showtime-form').forEach(function (form) {
+        const btn = form.querySelector('.btn-trigger-modal');
+
+        btn.addEventListener('click', function () {
+            pendingShowtimeForm = form; // Lưu lại form của dòng vừa nhấn
+            bsModal.show();             // Mở modal xác nhận
+        });
+    });
+
+    // 2. Xử lý nút "Xóa" màu đỏ bên trong Modal
+    document.getElementById('confirmDeleteShowtime').addEventListener('click', function () {
+        if (pendingShowtimeForm) {
+            pendingShowtimeForm.submit(); // Lúc này mới thực sự gửi lệnh xóa về Controller
+        }
+    });
+
+    // 3. Xử lý xóa phim (Giữ nguyên logic cũ của Thịnh)
+    document.querySelectorAll('.js-delete-movie').forEach(function (btn) {
+        btn.addEventListener('click', function (event) {
+            event.preventDefault();
+            document.getElementById('confirmDeleteMovie').setAttribute('href', btn.getAttribute('href'));
+        });
+    });
+</script></body>
+</html>
+
+

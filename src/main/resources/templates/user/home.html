@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang chủ - TP Cinema</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        .hero-section {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+            url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1350&q=80');
+            background-size: cover; background-position: center;
+            color: white; padding: 60px 0; border-radius: 0 0 30px 30px;
+        }
+        .movie-card { transition: all 0.3s; border-radius: 15px; overflow: hidden; border: none; }
+        .movie-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        .poster-wrapper { position: relative; }
+        .age-badge { position: absolute; top: 10px; left: 10px; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 0.8rem; }
+        .search-bar { border-radius: 30px; padding-left: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-primary" href="/user/home">🎥 TP CINEMA</a>
+        <div class="d-flex align-items-center">
+            <a href="/user/tickets" class="btn btn-link text-white text-decoration-none me-3">
+                <i class="bi bi-ticket-detailed"></i> Vé của tôi
+            </a>
+            <div class="dropdown">
+                <a href="#" class="dropdown-toggle d-flex align-items-center text-decoration-none" data-bs-toggle="dropdown">
+                    <img th:src="'https://ui-avatars.com/api/?name=' + ${session.user?.fullName} + '&background=0D6EFD&color=fff'"
+                         class="rounded-circle border border-2 border-primary" style="width: 40px;">
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                    <li class="px-3 py-2 fw-bold text-primary border-bottom" th:text="${session.user?.fullName}"></li>
+                    <li><a class="dropdown-item mt-2" href="/profile"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
+                    <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="hero-section text-center mb-5">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3">Trải Nghiệm Điện Ảnh Đỉnh Cao</h1>
+        <p class="lead mb-4">Tìm kiếm bộ phim yêu thích và đặt vé chỉ trong vài giây</p>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <form action="/user/home" method="get" class="d-flex gap-2">
+                    <input type="text" name="keyword" class="form-control form-control-lg search-bar" placeholder="Tim ten phim, the loai..." th:value="${keyword}">
+                    <select name="genreId" class="form-select form-select-lg" style="max-width: 220px; border-radius: 30px;">
+                        <option value="0">Tat ca the loai</option>
+                        <option th:each="genre : ${genres}" th:value="${genre.id}" th:selected="${selectedGenreId != null and selectedGenreId == genre.id}" th:text="${genre.name}"></option>
+                    </select>
+                    <button class="btn btn-primary rounded-pill px-4 fw-bold shadow">TIM KIEM</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h3 class="fw-bold"><i class="bi bi-fire text-danger"></i> Phim Đang Chiếu</h3>
+        </div>
+<!--        <div class="col-md-6 text-end">-->
+<!--            <div class="btn-group shadow-sm flex-wrap">-->
+<!--                <a th:href="@{/user/home(keyword=${keyword}, genreId=0)}" th:class="${selectedGenreId == null or selectedGenreId == 0} ? 'btn btn-white active border' : 'btn btn-white border'">Tat ca</a>-->
+<!--                <a th:each="genre : ${genres}" th:href="@{/user/home(keyword=${keyword}, genreId=${genre.id})}" th:class="${selectedGenreId != null and selectedGenreId == genre.id} ? 'btn btn-white active border' : 'btn btn-white border'" th:text="${genre.name}"></a>-->
+<!--            </div>-->
+<!--        </div>-->
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-3" th:each="movie : ${showingMovies}" th:with="st=${nextShowtimeByMovieId[movie.id]}">
+            <div class="card h-100 movie-card shadow-sm">
+                <div class="poster-wrapper">
+                    <img th:src="${movie.posterUrl}" class="card-img-top" style="height: 380px; object-fit: cover;">
+                    <span class="age-badge bg-warning text-dark" th:text="${movie.ageRating}">T16</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="fw-bold mb-1 text-truncate" th:text="${movie.title}"></h5>
+                    <div class="d-flex justify-content-between mb-3 small">
+                        <span class="text-primary fw-bold" th:text="${movie.genre != null ? movie.genre.name : 'N/A'}"></span>
+                        <span class="text-muted"><i class="bi bi-clock"></i> <span th:text="${movie.duration}"></span>p</span>
+                    </div>
+
+                    <div class="bg-light p-2 rounded mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold text-secondary">SUẤT CHIẾU:</span>
+                            <span class="badge bg-dark" th:text="${st != null ? #temporals.format(st.startTime, 'HH:mm') : 'Chua co'}"></span>
+                        </div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-door-open"></i> <span th:text="${st != null ? st.room.name : 'Chua xep phong'}"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 fw-bold text-danger mb-0" th:text="${#numbers.formatDecimal(movie.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        <a th:if="${st != null}" th:href="@{'/user/booking/' + ${st.id}}"
+                           th:class="${st.status == 'SOLD_OUT' ? 'btn btn-secondary rounded-pill px-3 fw-bold' : 'btn btn-primary rounded-pill px-3 fw-bold'}"
+                           th:text="${st.status == 'SOLD_OUT' ? 'HẾT VÉ' : 'ĐẶT VÉ'}">ĐẶT VÉ</a>
+                        <span th:if="${st == null}" class="badge bg-secondary rounded-pill px-3 py-2">Chua mo ban</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 text-center py-5" th:if="${#lists.isEmpty(showingMovies)}">
+            <i class="bi bi-camera-reels fs-1 text-muted"></i>
+            <p class="mt-3 text-muted">Hiện tại chưa có suất chiếu nào phù hợp.</p>
+        </div>
+    </div>
+</div>
+    <nav th:if="${showingTotalPages > 1}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li th:class="${showingCurrentPage == 1} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/user/home(keyword=${keyword}, genreId=${selectedGenreId}, page=${showingCurrentPage - 1})}">Truoc</a></li>
+            <li th:each="p : ${#numbers.sequence(1, showingTotalPages)}" th:class="${p == showingCurrentPage} ? 'page-item active' : 'page-item'"><a class="page-link" th:href="@{/user/home(keyword=${keyword}, genreId=${selectedGenreId}, page=${p})}" th:text="${p}"></a></li>
+            <li th:class="${showingCurrentPage == showingTotalPages} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/user/home(keyword=${keyword}, genreId=${selectedGenreId}, page=${showingCurrentPage + 1})}">Sau</a></li>
+        </ul>
+    </nav>
+
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold"><i class="bi bi-calendar-event text-primary"></i> Phim Sap Chieu</h3>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-3" th:each="movie : ${comingSoonMovies}" th:with="st=${nextShowtimeByMovieId[movie.id]}">
+            <div class="card h-100 movie-card shadow-sm">
+                <div class="poster-wrapper">
+                    <img th:src="${movie.posterUrl}" class="card-img-top" style="height: 360px; object-fit: cover;">
+                    <span class="age-badge bg-info text-dark" th:text="${movie.ageRating}">T16</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="fw-bold mb-1 text-truncate" th:text="${movie.title}"></h5>
+                    <div class="d-flex justify-content-between mb-3 small">
+                        <span class="text-primary fw-bold" th:text="${movie.genre != null ? movie.genre.name : 'N/A'}"></span>
+                        <span class="text-muted"><i class="bi bi-clock"></i> <span th:text="${movie.duration}"></span>p</span>
+                    </div>
+                    <div class="bg-light p-2 rounded mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold text-secondary">DAT TRUOC:</span>
+                            <span class="badge bg-dark" th:text="${st != null ? #temporals.format(st.startTime, 'HH:mm') : 'Chua co'}"></span>
+                        </div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-calendar"></i>
+                            <span th:text="${st != null ? #temporals.format(st.startTime, 'dd/MM/yyyy') : (movie.releaseDate != null ? #temporals.format(movie.releaseDate, 'dd/MM/yyyy') : 'Sap cap nhat')}"></span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 fw-bold text-danger mb-0" th:text="${#numbers.formatDecimal(movie.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        <a th:if="${st != null}" th:href="@{'/user/booking/' + ${st.id}}"
+                           th:class="${st.status == 'SOLD_OUT' ? 'btn btn-secondary rounded-pill px-3 fw-bold' : 'btn btn-info rounded-pill px-3 fw-bold text-dark'}"
+                           th:text="${st.status == 'SOLD_OUT' ? 'HẾT VÉ' : 'DAT TRUOC'}">DAT TRUOC</a>
+                        <span th:if="${st == null}" class="badge bg-secondary rounded-pill px-3 py-2">Chua mo ban</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 text-center py-4" th:if="${#lists.isEmpty(comingSoonMovies)}">
+            <p class="text-muted mb-0">Chua co phim sap chieu.</p>
+        </div>
+    </div>
+</div><div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold"><i class="bi bi-archive text-secondary"></i> Phim Da Ket Thuc</h3>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-3" th:each="movie : ${endedMovies}">
+            <div class="card h-100 movie-card shadow-sm">
+                <div class="poster-wrapper">
+                    <img th:src="${movie.posterUrl}" class="card-img-top" style="height: 360px; object-fit: cover; filter: grayscale(25%);">
+                    <span class="age-badge bg-secondary text-white" th:text="${movie.ageRating}">T16</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="fw-bold mb-1 text-truncate" th:text="${movie.title}"></h5>
+                    <div class="d-flex justify-content-between mb-3 small">
+                        <span class="text-primary fw-bold" th:text="${movie.genre != null ? movie.genre.name : 'N/A'}"></span>
+                        <span class="text-muted"><i class="bi bi-clock"></i> <span th:text="${movie.duration}"></span>p</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small" th:text="${movie.releaseDate != null ? #temporals.format(movie.releaseDate, 'dd/MM/yyyy') : 'Da ket thuc'}"></span>
+                        <span class="badge bg-secondary rounded-pill px-3 py-2">Da ket thuc</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 text-center py-4" th:if="${#lists.isEmpty(endedMovies)}">
+            <p class="text-muted mb-0">Chua co phim da ket thuc.</p>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container text-center">
+        <p class="mb-0">© 2026 TP CINEMA - Hệ thống đặt vé trực tuyến thông minh</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+

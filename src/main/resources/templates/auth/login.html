@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập - TP Cinema</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: none;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+        }
+        .logo-box {
+            width: 70px;
+            height: 70px;
+            background: #0d6efd;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: -35px auto 20px;
+            font-size: 2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+<div class="login-overlay">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="card login-card p-4 shadow-lg mt-5">
+                    <div class="logo-box">
+                        <i class="bi bi-ticket-perforated-fill"></i>
+                    </div>
+
+                    <h3 class="text-center mb-1 fw-bold text-dark">CHÀO MỪNG</h3>
+<!--                    <p class="text-center text-muted small mb-4">Đăng nhập để đặt vé xem phim ngay</p>-->
+
+                    <form th:action="@{/login}" method="post" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Tên đăng nhập</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-primary"></i></span>
+                                <input type="text" name="username" class="form-control border-start-0 ps-0"
+                                       placeholder="Username" th:value="${username}">
+                            </div>
+                            <small th:if="${errUser}" class="text-danger mt-1 d-block" th:text="${errUser}"></small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small">Mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-primary"></i></span>
+                                <input type="password" name="password" class="form-control border-start-0 ps-0"
+                                       placeholder="********">
+                            </div>
+                            <small th:if="${errPass}" class="text-danger mt-1 d-block" th:text="${errPass}"></small>
+                        </div>
+
+                        <div th:if="${err}" class="alert alert-danger py-2 border-0 small mb-4 text-center"
+                             th:text="${err}"></div>
+
+                        <button type="submit" class="btn btn-primary w-100 fw-bold btn-login shadow-sm">
+                            ĐĂNG NHẬP <i class="bi bi-arrow-right-short"></i>
+                        </button>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <span class="text-muted small">Bạn là thành viên mới?</span>
+                        <a href="/register" class="text-decoration-none fw-bold text-primary small">Đăng ký ngay</a>
+                    </div>
+                </div>
+
+<!--                <div class="text-center mt-4">-->
+<!--                    <a href="/user/home" class="text-white-50 text-decoration-none small">-->
+<!--                        <i class="bi bi-house-door"></i> Quay lại trang chủ-->
+<!--                    </a>-->
+<!--                </div>-->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

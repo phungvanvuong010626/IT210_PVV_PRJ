@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nghiep vu tai quay - TP Cinema</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .staff-nav { background: linear-gradient(135deg, #ffc107, #ff9800); }
+        .card-custom { border: none; border-radius: 12px; }
+        .ticket-preview { border: 2px dashed #dee2e6; border-radius: 12px; background: #fff; }
+        .seat-tag { background: #e9ecef; border: 1px solid #dee2e6; border-radius: 6px; padding: 3px 8px; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark staff-nav shadow-sm mb-4">
+    <div class="container px-4">
+        <span class="navbar-brand fw-bold text-dark">
+            <i class="bi bi-person-badge-fill me-2"></i>HE THONG NHAN VIEN TAI QUAY
+        </span>
+        <div class="d-flex align-items-center">
+            <span class="me-3 fw-bold text-dark" th:text="${session.user.fullName}">Nhan vien</span>
+            <a href="/logout" class="btn btn-sm btn-dark">Dang xuat</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card card-custom shadow-sm p-4 h-100">
+                <h5 class="fw-bold mb-4"><i class="bi bi-receipt me-2 text-warning"></i>Don hang da thanh toan</h5>
+                <div th:if="${#lists.isEmpty(paidTickets)}" class="text-center text-muted py-5">
+                    Chua co don hang nao can xac nhan.
+                </div>
+                <div class="list-group list-group-flush" th:if="${!#lists.isEmpty(paidTickets)}">
+                    <a class="list-group-item list-group-item-action px-2 rounded-2"
+                       th:each="ticket : ${paidTickets}"
+                       th:href="@{/staff/counter(ticketId=${ticket.id})}"
+                       th:classappend="${selectedTicket != null and selectedTicket.id == ticket.id} ? 'active' : ''">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="fw-bold" th:text="${ticket.orderCode}">TP...</div>
+                                <small th:class="${selectedTicket != null and selectedTicket.id == ticket.id} ? 'text-white-50' : 'text-muted'"
+                                       th:text="${ticket.user.fullName}">Khach hang</small>
+                            </div>
+                            <span class="badge align-self-start"
+                                  th:classappend="${ticket.status == 'BOOKED' ? 'bg-success' : 'bg-warning text-dark'}"
+                                  th:text="${ticket.status}">PENDING</span>
+                        </div>
+                        <div class="small mt-2" th:text="${ticket.showtime.movie.title}">Ten phim</div>
+                    </a>
+                </div>                <nav th:if="${paidTicketTotalPages > 1}" class="mt-3">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        <li th:class="${paidTicketCurrentPage == 1} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/staff/counter(paidPage=${paidTicketCurrentPage - 1}, recentPage=${recentTicketCurrentPage})}">Truoc</a></li>
+                        <li th:each="p : ${#numbers.sequence(1, paidTicketTotalPages)}" th:class="${p == paidTicketCurrentPage} ? 'page-item active' : 'page-item'"><a class="page-link" th:href="@{/staff/counter(paidPage=${p}, recentPage=${recentTicketCurrentPage})}" th:text="${p}"></a></li>
+                        <li th:class="${paidTicketCurrentPage == paidTicketTotalPages} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/staff/counter(paidPage=${paidTicketCurrentPage + 1}, recentPage=${recentTicketCurrentPage})}">Sau</a></li>
+                    </ul>
+                </nav></div></div><div class="col-lg-7">
+            <div class="card card-custom shadow-sm p-4">
+                <h5 class="fw-bold mb-4"><i class="bi bi-check2-circle me-2 text-success"></i>Thong tin xac nhan</h5>
+
+                <div th:if="${selectedTicket == null}" class="ticket-preview p-5 text-center text-muted">
+                    Chon don hang da thanh toan de xac nhan va in ve.
+                </div>
+
+                <div th:if="${selectedTicket != null}" class="ticket-preview p-4 mb-4 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h4 class="fw-bold text-primary mb-1" th:text="${selectedTicket.showtime.movie.title}">Ten phim</h4>
+                            <small class="text-muted">Ma don hang:
+                                <span class="fw-bold" th:text="${selectedTicket.orderCode}">TP...</span>
+                            </small>
+                        </div>
+                        <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">DA THANH TOAN</span>
+                    </div>
+
+                    <div class="row g-3 py-3 border-top border-bottom">
+                        <div class="col-5">
+                            <p class="mb-1 text-muted small">Suat chieu</p>
+                            <p class="fw-bold mb-0" th:text="${#temporals.format(selectedTicket.showtime.startTime, 'HH:mm - dd/MM/yyyy')}"></p>
+                        </div>
+                        <div class="col-3">
+                            <p class="mb-1 text-muted small">Phong</p>
+                            <p class="fw-bold mb-0" th:text="${selectedTicket.showtime.room.name}"></p>
+                        </div>
+                        <div class="col-4 text-end">
+                            <p class="mb-1 text-muted small">Ghe</p>
+                            <div class="d-flex justify-content-end flex-wrap gap-1">
+                                <span class="seat-tag" th:each="detail : ${selectedTicket.ticketDetails}" th:text="${detail.seat.seatNumber}"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-0 text-muted small">Khach hang</p>
+                            <p class="fw-bold mb-0" th:text="${selectedTicket.user.fullName}">Khach hang</p>
+                        </div>
+                        <h4 class="fw-bold text-danger mb-0"
+                            th:text="${#numbers.formatDecimal(selectedTicket.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></h4>
+                    </div>
+                </div>
+
+                <form th:if="${selectedTicket != null and selectedTicket.status == 'PENDING'}"
+                      th:action="@{'/staff/tickets/' + ${selectedTicket.id} + '/confirm'}"
+                      method="post">
+                    <button class="btn btn-success w-100 py-3 fw-bold shadow-sm">
+                        <i class="bi bi-printer-fill me-2"></i>XAC NHAN & IN VE
+                    </button>
+                </form>
+                <button th:if="${selectedTicket != null and selectedTicket.status == 'BOOKED'}"
+                        class="btn btn-outline-primary w-100 py-3 fw-bold"
+                        onclick="window.print()">
+                    <i class="bi bi-printer me-2"></i>IN LAI VE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-custom shadow-sm mt-4 p-4">
+        <h6 class="fw-bold mb-3">Giao dich gan day</h6>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+                <thead class="table-light small">
+                <tr>
+                    <th>Ma don</th>
+                    <th>Khach hang</th>
+                    <th>Phim</th>
+                    <th>So tien</th>
+                    <th>Thanh toan</th>
+                    <th>Trang thai ve</th>
+                </tr>
+                </thead>
+                <tbody class="small">
+                <tr th:each="ticket : ${recentTickets}">
+                    <td class="fw-bold" th:text="${ticket.orderCode ?: '#'+ticket.id}"></td>
+                    <td th:text="${ticket.user.fullName}"></td>
+                    <td th:text="${ticket.showtime.movie.title}"></td>
+                    <td class="fw-bold" th:text="${#numbers.formatDecimal(ticket.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    <td><span class="badge bg-info text-dark" th:text="${ticket.paymentStatus ?: 'UNPAID'}"></span></td>
+                    <td><span class="badge bg-secondary" th:text="${ticket.status}"></span></td>
+                </tr>
+                </tbody>
+            </table></div>            <nav th:if="${recentTicketTotalPages > 1}" class="mt-3">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <li th:class="${recentTicketCurrentPage == 1} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/staff/counter(paidPage=${paidTicketCurrentPage}, recentPage=${recentTicketCurrentPage - 1})}">Truoc</a></li>
+                    <li th:each="p : ${#numbers.sequence(1, recentTicketTotalPages)}" th:class="${p == recentTicketCurrentPage} ? 'page-item active' : 'page-item'"><a class="page-link" th:href="@{/staff/counter(paidPage=${paidTicketCurrentPage}, recentPage=${p})}" th:text="${p}"></a></li>
+                    <li th:class="${recentTicketCurrentPage == recentTicketTotalPages} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/staff/counter(paidPage=${paidTicketCurrentPage}, recentPage=${recentTicketCurrentPage + 1})}">Sau</a></li>
+                </ul>
+            </nav></div></div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+

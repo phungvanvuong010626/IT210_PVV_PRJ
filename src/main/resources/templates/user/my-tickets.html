@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Vé của tôi - TP Cinema</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <style>
+    body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+    .ticket-card { background: #fff; border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; display: flex; }
+    .ticket-left { padding: 25px; border-right: 2px dashed #eee; flex: 1; }
+    .ticket-right { width: 170px; padding: 20px; background: #fafafa; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    .seat-tag { background: #e9ecef; color: #495057; padding: 3px 10px; border-radius: 6px; font-size: 0.85rem; margin-right: 5px; font-weight: bold; border: 1px solid #dee2e6; }
+    .movie-title { color: #0d6efd; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px; }
+    .qr-img { width: 120px; height: 120px; border: 1px solid #dee2e6; border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+<div class="container py-5" style="max-width: 850px;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold m-0 text-dark"><i class="bi bi-ticket-detailed-fill me-2 text-primary"></i>LỊCH SỬ ĐẶT VÉ</h4>
+    <a href="/user/home" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm">
+      <i class="bi bi-house-door me-1"></i> Trang chủ
+    </a>
+  </div>
+
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm">
+    <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm">
+    <span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <div th:if="${tickets == null or #lists.isEmpty(tickets)}" class="card p-5 text-center shadow-sm border-0 rounded-4">
+    <i class="bi bi-ticket-perforated fs-1 text-muted opacity-50"></i>
+    <p class="mt-3 text-muted fw-medium">Bạn chưa có giao dịch đặt vé nào.</p>
+    <div class="mt-2"><a href="/user/home" class="btn btn-primary rounded-pill px-4">Đặt vé ngay bây giờ</a></div>
+  </div>
+
+  <div th:each="t : ${tickets}" class="ticket-card shadow-sm border border-white">
+    <div class="ticket-left">
+      <div class="movie-title mb-3" th:text="${t.showtime?.movie?.title ?: 'Phim không xác định'}">Tên Phim</div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <small class="text-muted d-block small mb-1"><i class="bi bi-calendar3 me-1"></i>SUẤT CHIẾU</small>
+          <span class="fw-bold text-dark" th:text="${t.showtime?.startTime != null ? #temporals.format(t.showtime.startTime, 'HH:mm - dd/MM/yyyy') : 'N/A'}"></span>
+        </div>
+        <div class="col-6">
+          <small class="text-muted d-block small mb-1"><i class="bi bi-door-open me-1"></i>PHÒNG CHIẾU</small>
+          <span class="fw-bold text-dark" th:text="${t.showtime?.room?.name ?: 'N/A'}"></span>
+        </div>
+      </div>
+
+      <div>
+        <small class="text-muted d-block small mb-1 text-uppercase fw-bold" style="font-size: 0.65rem;">Ma don hang</small>
+        <div class="fw-bold mb-3" th:text="${t.orderCode ?: '#'+t.id}"></div>
+
+        <small class="text-muted d-block small mb-2 text-uppercase fw-bold" style="font-size: 0.65rem;">Ghế của bạn</small>
+        <div class="d-flex flex-wrap gap-1">
+          <th:block th:if="${t.ticketDetails != null}">
+            <th:block th:each="detail : ${t.ticketDetails}">
+              <span class="seat-tag" th:text="${detail.seat?.seatNumber ?: '??'}"></span>
+            </th:block>
+          </th:block>
+          <th:block th:if="${t.ticketDetails == null or #lists.isEmpty(t.ticketDetails)}">
+            <span class="text-muted small">Không tìm thấy thông tin ghế</span>
+          </th:block>
+        </div>
+      </div>
+    </div>
+
+    <div class="ticket-right">
+      <small class="text-muted small mb-1">TỔNG TIỀN</small>
+      <div class="fw-bold text-danger fs-4 mb-2"
+           th:text="${t.totalAmount != null ? #numbers.formatDecimal(t.totalAmount, 0, 'COMMA', 0, 'POINT') + 'đ' : '0đ'}"></div>
+
+      <img th:if="${t.paymentStatus == null or t.paymentStatus == 'UNPAID'}"
+           class="qr-img mb-2"
+           th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + ${t.orderCode} + '-' + ${t.totalAmount}}"
+           alt="QR thanh toan">
+
+      <span class="badge rounded-pill px-3 py-2"
+            th:classappend="${t.status == 'BOOKED' ? 'bg-success' : (t.status == 'CANCELLED' ? 'bg-secondary' : 'bg-warning text-dark')}"
+            th:text="${t.status ?: 'N/A'}"></span>
+
+      <span class="badge rounded-pill px-3 py-2 mt-2"
+            th:classappend="${t.paymentStatus == 'PAID' ? 'bg-success' : (t.paymentStatus == 'CANCELLED' ? 'bg-secondary' : 'bg-danger')}"
+            th:text="${t.paymentStatus ?: 'UNPAID'}"></span>
+
+      <form th:if="${t.status == 'PENDING' and (t.paymentStatus == null or t.paymentStatus == 'UNPAID')}"
+            th:action="@{'/user/tickets/' + ${t.id} + '/pay'}"
+            method="post"
+            class="w-100 mt-3">
+        <button type="submit" class="btn btn-success btn-sm w-100 rounded-pill fw-bold">
+          <i class="bi bi-check-circle me-1"></i> Da thanh toan
+        </button>
+      </form>
+
+      <form th:if="${t.status == 'PENDING' and (t.paymentStatus == null or t.paymentStatus == 'UNPAID')}"
+            th:action="@{'/user/tickets/' + ${t.id} + '/payment-cancel'}"
+            method="post"
+            class="w-100 mt-2 js-confirm-form" data-modal-message="Ban muon huy thanh toan va huy ve nay?">
+        <button type="submit" class="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-bold">
+          Huy thanh toan
+        </button>
+      </form>
+
+      <form th:if="${cancelableTicketIds != null and #sets.contains(cancelableTicketIds, t.id)}"
+            th:action="@{'/user/tickets/' + ${t.id} + '/cancel'}"
+            method="post"
+            class="w-100 mt-3 js-confirm-form" data-modal-message="Ban chac chan muon huy ve nay?">
+        <button type="submit" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-bold">
+          <i class="bi bi-x-circle me-1"></i> Huy ve
+        </button>
+      </form>
+
+      <small th:if="${t.status == 'PENDING'}" class="text-muted mt-2 d-block">
+        Cho duyet / chua thanh toan
+      </small>
+
+      <div class="mt-4 pt-3 border-top w-100" style="font-size: 10px; color: #ccc;">
+        MÃ VÉ: #<span th:text="${t.id}"></span>
+      </div>
+    </div>
+  </div>
+  <nav th:if="${totalPages > 1}" class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li th:class="${currentPage == 1} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/user/my-tickets(page=${currentPage - 1})}">Truoc</a></li>
+      <li th:each="p : ${#numbers.sequence(1, totalPages)}" th:class="${p == currentPage} ? 'page-item active' : 'page-item'"><a class="page-link" th:href="@{/user/my-tickets(page=${p})}" th:text="${p}"></a></li>
+      <li th:class="${currentPage == totalPages} ? 'page-item disabled' : 'page-item'"><a class="page-link" th:href="@{/user/my-tickets(page=${currentPage + 1})}">Sau</a></li>
+    </ul>
+  </nav></div>
+
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Xac nhan thao tac</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="confirmActionMessage"></div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huy</button><button type="button" id="confirmActionSubmit" class="btn btn-danger">Dong y</button></div>
+    </div>
+  </div>
+</div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  let pendingConfirmForm = null;
+  document.querySelectorAll('.js-confirm-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      pendingConfirmForm = form;
+      document.getElementById('confirmActionMessage').textContent = form.dataset.modalMessage || 'Ban muon tiep tuc?';
+      new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
+    });
+  });
+  document.getElementById('confirmActionSubmit')?.addEventListener('click', function () {
+    if (pendingConfirmForm) pendingConfirmForm.submit();
+  });
+</script></body>
+</html>
+

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Thêm phim mới - Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; border-radius: 15px; }
+        .preview-poster {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .form-label { color: #495057; }
+        .input-group-text { background-color: #f1f3f5; }
+        .sticky-preview { position: sticky; top: 20px; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark shadow-sm mb-4 py-2">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-primary" href="/admin/dashboard"><i class="bi bi-film me-2"></i> TP CINEMA ADMIN</a>
+        <div class="d-flex gap-2">
+            <a href="/admin/dashboard" class="btn btn-sm btn-outline-light">Tong quan</a>
+            <a href="/admin/movies" class="btn btn-sm btn-primary">Quan ly phim</a>
+            <a href="/admin/movies/showtimes/add" class="btn btn-sm btn-outline-light">Suat chieu</a>
+            <a href="/logout" class="btn btn-sm btn-outline-danger">Dang xuat</a>
+        </div>
+    </div>
+</nav>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-11">
+            <div class="card shadow-lg p-4 p-md-5">
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/admin/movies" class="btn btn-outline-dark btn-sm rounded-circle me-3">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                    <h2 class="fw-bold mb-0 text-dark">Thêm Phim Mới Vào Hệ Thống</h2>
+                </div>
+                <p class="text-muted mb-4">Vui lòng điền đầy đủ các thông tin dưới đây để đăng tải phim lên trang chủ.</p>
+
+                <form th:action="@{/admin/movies/add}" th:object="${movie}" method="post" novalidate>
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Tên bộ phim</label>
+                                <input type="text" th:field="*{title}" class="form-control form-control-lg border-primary-subtle"
+                                       placeholder="Ví dụ: Avengers: Endgame" required>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Link URL ảnh Poster</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                    <input type="text" id="posterInput" th:field="*{posterUrl}" class="form-control"
+                                           placeholder="Dán link ảnh tại đây..." required oninput="updatePreview()">
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('posterUrl')}" th:errors="*{posterUrl}"></div>
+                                <small class="text-muted italic">Mẹo: Nên dùng link ảnh từ các trang rạp phim lớn.</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Mô tả phim</label>
+                                <textarea th:field="*{description}" class="form-control" rows="5"
+                                          placeholder="Nhập nội dung ngắn gọn của bộ phim..."></textarea>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Thể loại</label>
+                                    <select th:field="*{genre.id}" class="form-select" required>
+                                        <option value="">-- Chọn thể loại --</option>
+                                        <option th:each="g : ${genres}" th:value="${g.id}" th:text="${g.name}"></option>
+                                    </select>
+                                    <div class="text-danger small mt-1" th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Phân loại lứa tuổi</label>
+                                    <select th:field="*{ageRating}" class="form-select">
+                                        <option value="P">P - Mọi lứa tuổi</option>
+                                        <option value="T13">T13 - Trên 13 tuổi</option>
+                                        <option value="T16">T16 - Trên 16 tuổi</option>
+                                        <option value="T18">T18 - Trên 18 tuổi</option>
+                                    </select>
+                                    <div class="text-danger small mt-1" th:if="${#fields.hasErrors('ageRating')}" th:errors="*{ageRating}"></div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Thời lượng</label>
+                                    <div class="input-group">
+                                        <input type="number" th:field="*{duration}" class="form-control" placeholder="120" required>
+                                        <span class="input-group-text">phút</span>
+                                    </div>
+                                    <div class="text-danger small mt-1" th:if="${#fields.hasErrors('duration')}" th:errors="*{duration}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Giá vé niêm yết</label>
+                                    <div class="input-group">
+                                        <input type="number" th:field="*{price}" class="form-control" placeholder="75000" required>
+                                        <span class="input-group-text">VNĐ</span>
+                                    </div>
+                                    <div class="text-danger small mt-1" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            <div class="sticky-preview">
+                                <label class="form-label fw-bold d-block text-center mb-3">Giao diện Poster</label>
+                                <div class="text-center">
+                                    <img id="posterPreview" src="https://via.placeholder.com/300x450?text=Chưa+Có+Ảnh"
+                                         class="preview-poster mb-3" onerror="this.src='https://via.placeholder.com/300x450?text=Link+Ảnh+Lỗi'">
+                                    <p class="small text-muted">Hình ảnh xem trước sẽ hiển thị tại đây</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ngày phát hành</label>
+                            <input type="date" th:field="*{releaseDate}" class="form-control" th:min="${today}" required>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('releaseDate')}" th:errors="*{releaseDate}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Trạng thái phim</label>
+                            <select th:field="*{status}" class="form-select">
+                                <option value="COMING_SOON">Sắp chiếu</option>
+                                <option value="SHOWING">Đang chiếu</option>
+                                <option value="ENDED">Đã kết thúc</option>
+                            </select>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-top d-flex justify-content-end gap-3">
+                        <a href="/admin/movies" class="btn btn-light px-5 py-2 fw-bold text-muted border">HỦY BỎ</a>
+                        <button type="submit" class="btn btn-success px-5 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-cloud-upload me-2"></i>LƯU VÀ PHÁT HÀNH
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updatePreview() {
+        const input = document.getElementById('posterInput');
+        const preview = document.getElementById('posterPreview');
+        if(input.value) {
+            preview.src = input.value;
+        } else {
+            preview.src = "https://via.placeholder.com/300x450?text=Chưa+Có+Ảnh";
+        }
+    }
+
+    // Gọi preview ngay khi load trang (dành cho trường hợp sửa phim hoặc gõ dở)
+    window.onload = updatePreview;
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

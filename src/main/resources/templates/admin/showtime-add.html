@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thiết lập suất chiếu - Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .form-label { font-weight: 600; color: #495057; }
+        .btn-submit { background: linear-gradient(135deg, #0d6efd, #0056b3); border: none; padding: 12px; border-radius: 10px; }
+        .info-box { background-color: #e7f1ff; border-left: 5px solid #0d6efd; border-radius: 8px; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark shadow-sm mb-4 py-2">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-primary" href="/admin/dashboard"><i class="bi bi-film me-2"></i> TP CINEMA ADMIN</a>
+        <div class="d-flex gap-2">
+            <a href="/admin/dashboard" class="btn btn-sm btn-outline-light">Tong quan</a>
+            <a href="/admin/movies" class="btn btn-sm btn-outline-light">Quan ly phim</a>
+            <a href="/admin/movies/showtimes/add" class="btn btn-sm btn-primary">Suat chieu</a>
+            <a href="/logout" class="btn btn-sm btn-outline-danger">Dang xuat</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4 p-md-5">
+
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/admin/movies" class="btn btn-outline-dark btn-sm rounded-circle me-3">
+                        <i class="bi bi-arrow-left"></i>
+                    </a>
+                    <h2 class="fw-bold mb-0">Thiết Lập Suất Chiếu</h2>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong th:text="${error}"></strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <form th:action="@{/admin/movies/showtimes/add}" th:object="${showtime}" method="post" novalidate>
+
+                    <div class="mb-4">
+                        <label class="form-label"><i class="bi bi-film me-2 text-primary"></i>Chọn bộ phim</label>
+                        <select th:field="*{movie.id}" class="form-select form-select-lg" required>
+                            <option value="">-- Chọn phim đang chiếu --</option>
+                            <option th:each="m : ${movies}"
+                                    th:value="${m.id}"
+                                    th:text="${m.title} + ' (' + ${m.duration} + ' phút)'"></option>
+                        </select>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('movie')}" th:errors="*{movie}"></div>
+                        <div class="form-text">Hệ thống sẽ dựa vào thời lượng phim để tính giờ kết thúc.</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label"><i class="bi bi-door-open me-2 text-primary"></i>Phòng chiếu</label>
+                            <select th:field="*{room.id}" class="form-select" required>
+                                <option value="">-- Chọn phòng --</option>
+                                <option th:each="r : ${rooms}" th:value="${r.id}" th:text="${r.name}"></option>
+                            </select>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('room')}" th:errors="*{room}"></div>
+                        </div>
+
+<!--                        <div class="col-md-6 mb-4">-->
+<!--                            <label class="form-label"><i class="bi bi-clock me-2 text-primary"></i>Giờ bắt đầu</label>-->
+<!--                            <input type="datetime-local" th:field="*{startTime}" class="form-control" required>-->
+<!--                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('startTime')}" th:errors="*{startTime}"></div>-->
+<!--                        </div>-->
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label"><i class="bi bi-clock me-2 text-primary"></i>Giờ bắt đầu</label>
+                            <input type="datetime-local" id="startTimeInput" th:field="*{startTime}" class="form-control" required>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('startTime')}" th:errors="*{startTime}"></div>
+                        </div>
+                    </div>
+
+                    <div class="info-box p-3 mb-4">
+                        <div class="d-flex">
+                            <i class="bi bi-info-circle-fill text-primary fs-4 me-3"></i>
+                            <div>
+                                <p class="small text-muted mb-0">
+                                    Hệ thống tự động cộng thêm <strong>15 phút dọn dẹp</strong> sau khi phim kết thúc.
+                                    Bạn không thể tạo suất chiếu mới nếu phòng chưa được dọn xong.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="/admin/movies" class="btn btn-light border px-5 py-2 fw-bold text-muted">HỦY BỎ</a>
+                        <button type="submit" class="btn btn-primary px-5 py-2 fw-bold text-white shadow-sm">
+                            <i class="bi bi-calendar-plus me-2"></i>XÁC NHẬN LỊCH CHIẾU
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Hàm chặn chọn giờ quá khứ
+    window.addEventListener('load', () => {
+        const now = new Date();
+
+        // Offset múi giờ để lấy đúng giờ địa phương Việt Nam (GMT+7)
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+
+        // Cắt lấy chuỗi YYYY-MM-DDThh:mm
+        const minDateTime = now.toISOString().slice(0, 16);
+
+        // Gán vào thuộc tính min của input
+        const input = document.getElementById('startTimeInput');
+        if(input) {
+            input.setAttribute('min', minDateTime);
+
+            // Nếu người dùng cố tình nhập tay giờ cũ, báo lỗi luôn
+            input.addEventListener('change', function() {
+                if(this.value < minDateTime) {
+                    alert('Bạn không thể chọn thời gian trong quá khứ!');
+                    this.value = minDateTime;
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>
