@@ -27,26 +27,26 @@ public class DataInitializer implements CommandLineRunner {
             genreRepository.save(new Genre(null, "Thế giới mở", null));
         }
 
-        // 2. Khởi tạo các tài khoản nhân viên và Admin (Phục vụ phân quyền)
+
         if (userRepository.count() == 0) {
             // Admin
             userRepository.save(User.builder()
-                    .username("admin").password("123").email("admin@cinema.com")
+                    .username("admin").password("123456").email("admin@cinema.com")
                     .fullName("Quản trị viên").role(User.Role.ADMIN).build());
 
-            // Nhân viên 01
+
             userRepository.save(User.builder()
-                    .username("staff01").password("123").email("staff1@cinema.com")
+                    .username("staff01").password("123456").email("staff1@cinema.com")
                     .fullName("NV Bán Vé 01").role(User.Role.STAFF).build());
 
-            // Nhân viên 02
+
             userRepository.save(User.builder()
-                    .username("staff02").password("123").email("staff2@cinema.com")
+                    .username("staff02").password("123456").email("staff2@cinema.com")
                     .fullName("NV Bán Vé 02").role(User.Role.STAFF).build());
 
-            // Khách hàng mẫu
+
             userRepository.save(User.builder()
-                    .username("customer").password("123").email("user@gmail.com")
+                    .username("customer").password("123456").email("user@gmail.com")
                     .fullName("Thịnh Phùng").role(User.Role.CUSTOMER).build());
         }
 

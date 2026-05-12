@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Builder
 public class UserProfile {
     @Id
-    private Long id; // Sẽ lấy từ User ID thông qua @MapsId
+    private Long id;
 
     @OneToOne
     @MapsId
@@ -30,6 +30,5 @@ public class UserProfile {
 
     private String gender;
 
-    // Bạn có thể thêm trường avatar nếu muốn lưu ảnh đại diện sau này
     private String avatarUrl;
 }

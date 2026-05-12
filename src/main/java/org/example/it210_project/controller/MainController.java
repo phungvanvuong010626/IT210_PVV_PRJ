@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class MainController {
 
-    // TRANG PROFILE DÙNG CHUNG
+    //PROFILE DÙNG CHUNG
     @GetMapping("/profile")
     public String viewProfile(HttpSession session, Model model) {
         User user = (User) session.getAttribute("user");
@@ -19,7 +19,7 @@ public class MainController {
         return "profile"; // Trả về file profile.html ở thư mục templates
     }
 
-    // TRANG CHỦ MẶC ĐỊNH (Nếu khách chưa gõ gì)
+    // TRANG CHỦ MẶC ĐỊNH Nếu khách chưa gõ gì
     @GetMapping("/")
     public String index(HttpSession session) {
         User user = (User) session.getAttribute("user");

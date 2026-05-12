@@ -34,18 +34,17 @@ public class AdminMovieController {
     @Autowired private ShowtimeService showtimeService;
     @Autowired private TicketRepository ticketRepository;
 
-    // Hàm kiểm tra quyền Admin nhanh
+    //kiểm tra quyền Admin nhanh
     private User getAdmin(HttpSession session) {
         User user = (User) session.getAttribute("user");
         if (user != null && user.getRole() == User.Role.ADMIN) return user;
         return null;
     }
 
-    // --- 1. DASHBOARD THỐNG KÊ (Sửa lỗi báo cáo doanh thu) ---
+    //DASHBOARD THỐNG KÊ
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
         if (getAdmin(session) == null) return "redirect:/login";
-
         // Tính doanh thu thực tế từ những vé có trạng thái BOOKED
         var tickets = ticketRepository.findAll();
         double totalRevenue = tickets.stream()
@@ -67,19 +66,16 @@ public class AdminMovieController {
         return "admin/dashboard";
     }
 
-    // --- 2. QUẢN LÝ DANH SÁCH PHIM ---
+    //QUẢN LÝ DANH SÁCH PHIM
     @GetMapping("/movies")
     public String listMovies(@RequestParam(defaultValue = "1") int moviePage,
                              @RequestParam(defaultValue = "1") int showtimePage,
                              Model model,
                              HttpSession session) {
         if (getAdmin(session) == null) return "redirect:/login";
-
-        // 1. Lấy danh sách phim
+        //Lấy danh sách phim
         addPagination(model, "movie", movieService.getAllMovies(), moviePage, ADMIN_PAGE_SIZE);
-
-        // 2. PHẢI CÓ DÒNG NÀY: Lấy toàn bộ suất chiếu để hiện ở bảng dưới
-        // (Đảm bảo bạn đã @Autowired ShowtimeRepository ở đầu class)
+        //Lấy toàn bộ suất chiếu để hiện ở bảng dưới
         addPagination(model, "showtime", showtimeRepository.findAll(), showtimePage, ADMIN_PAGE_SIZE);
 
         return "admin/movie-list";
@@ -108,7 +104,6 @@ public class AdminMovieController {
                 prepareMovieForm(model);
                 return "admin/movie-add";
             }
-            // Đảm bảo Genre được gán đúng thực thể từ DB
             if (movie.getGenre() != null && movie.getGenre().getId() != null) {
                 movie.setGenre(genreRepository.findById(movie.getGenre().getId()).orElse(null));
             }
@@ -121,7 +116,7 @@ public class AdminMovieController {
         return "redirect:/admin/movies";
     }
 
-    // --- 3. THIẾT LẬP SUẤT CHIẾU (Fix lỗi logic và thời gian) ---
+    //THIẾT LẬP SUẤT CHIẾU
     @GetMapping("/movies/showtimes/add")
     public String addShowtimeForm(HttpSession session, Model model) {
         if (getAdmin(session) == null) return "redirect:/login";
@@ -157,29 +152,28 @@ public class AdminMovieController {
                 return "admin/showtime-add";
             }
 
-            // 2. Lấy phim từ DB để có Duration (để tính endTime)
+            //Lấy phim từ DB để có Duration để tính endTime
             Movie movie = movieService.getMovieById(showtime.getMovie().getId());
 
-            // 3. Tính toán thời gian
+            //Tính toán thời gian
             LocalDateTime start = showtime.getStartTime();
             LocalDateTime end = start.plusMinutes(movie.getDuration());
 
-            // 4. Kiểm tra xung đột (CORE-05)
+            //Kiểm tra xung đột
             if (showtimeService.hasConflict(showtime.getRoom().getId(), start, end)) {
                 result.rejectValue("startTime", "start.conflict", "Phong nay da co lich chieu hoac chua don xong");
                 prepareShowtimeForm(model);
                 return "admin/showtime-add";
             }
 
-            // 5. Gán dữ liệu và lưu
-            showtime.setMovie(movie); // Gán object movie đầy đủ thay vì chỉ có ID
+            //Gán dữ liệu và lưu
+            showtime.setMovie(movie);
             showtime.setEndTime(end);
             showtime.setStatus("ACTIVE");
             showtimeRepository.save(showtime);
 
             ra.addFlashAttribute("success", "Tạo suất chiếu thành công!");
         } catch (Exception e) {
-            // Nếu có lỗi, in ra Console để mình xem và báo lỗi ra màn hình
             e.printStackTrace();
             ra.addFlashAttribute("error", "Lỗi hệ thống: " + e.getMessage());
             return "redirect:/admin/movies/showtimes/add";
@@ -187,7 +181,6 @@ public class AdminMovieController {
         return "redirect:/admin/movies";
     }
 
-    // Thêm hàm xóa phim nếu cần
     @GetMapping("/movies/delete/{id}")
     public String deleteMovie(@PathVariable Long id, HttpSession session) {
         if (getAdmin(session) == null) return "redirect:/login";
@@ -209,7 +202,6 @@ public class AdminMovieController {
         return "redirect:/admin/movies";
     }
 
-    // 1. Mở trang sửa phim
     @GetMapping("/movies/edit/{id}")
     public String editForm(@PathVariable Long id, HttpSession session, Model model) {
         if (getAdmin(session) == null) return "redirect:/login";
@@ -223,7 +215,7 @@ public class AdminMovieController {
         return "admin/movie-edit"; // Bạn cần có file movie-edit.html
     }
 
-    // 2. Xử lý lưu phim đã sửa
+    //lưu phim đã sửa
     @PostMapping("/movies/update")
     public String handleUpdate(@Valid @ModelAttribute Movie movie,
                                BindingResult result,
@@ -238,7 +230,7 @@ public class AdminMovieController {
                 prepareMovieForm(model);
                 return "admin/movie-edit";
             }
-            // Rất quan trọng: Kiểm tra xem phim có tồn tại trong DB không trước khi lưu
+            //Kiểm tra xem phim có tồn tại trong DB không trước khi lưu
             Movie existingMovie = movieService.getMovieById(movie.getId());
             if (existingMovie == null) {
                 ra.addFlashAttribute("error", "Không tìm thấy phim để cập nhật!");
@@ -250,7 +242,7 @@ public class AdminMovieController {
                 movie.setGenre(genreRepository.findById(movie.getGenre().getId()).orElse(null));
             }
 
-            movieService.saveMovie(movie); // Hibernate sẽ tự động Update vì đã có ID
+            movieService.saveMovie(movie);
             ra.addFlashAttribute("success", "Cập nhật phim thành công!");
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Lỗi cập nhật: " + e.getMessage());
